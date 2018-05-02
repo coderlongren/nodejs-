@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <h1>哈哈哈哈，进来我的页面了</h1>
+    <p><%= title %></p>
+    <ul>
+    	<%
+    		for (var i = 0; i < supplies.length;i++) {%>
+				<li><%= supplies[i]%></li>
+		<%}%>
+    </ul>
+    
+  </body>
+</html>
