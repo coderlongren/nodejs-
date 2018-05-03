@@ -9,8 +9,21 @@ module.exports = function(app) {
 	});
 	app.get('/reg', function(req, res) {
  		 res.render('reg', { title: '注册' });
+ 		 console.log('输入的用户名:' +name);
 	});
 	app.post('/reg', function(req, res) {
+		var name = req.body.name;
+		var password = req.body.password;
+		var password_repeat = req.body['password_repeat'];
+		// if (password != password_repeat) {
+		// 	req.flash('error'); // 输入秘密不一致
+		// 	return res.redicect('/reg');
+		// }
+		// else {
+		// 	return res.redicect('');
+		// }
+		console.log('输入的用户名:' +name);
+		return res.redirect('/');
 
 	});
 	app.get('/login', function(req, res) {
