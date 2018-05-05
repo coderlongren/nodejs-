@@ -13,7 +13,6 @@ Db.prototype.insert = function(data,col,cb){
     //连接到表col
     var collection = db.collection(col);
     //插入数据
-    //var data = [{"name":"源宝教程","url":"www.ybao.org"},{"name":"源宝工具","url":"code.ybao.org"}];
     collection.insert(data, function(err, result) { 
         if(err)
         {
@@ -40,7 +39,6 @@ Db.prototype.find = function(data,col,cb){
   //连接到表  
   var collection = db.collection(col);
   //查询数据
-  //var whereStr = {"name":'源宝教程'};
   var whereStr = data;
   collection.find(whereStr).sort({
     time: -1
