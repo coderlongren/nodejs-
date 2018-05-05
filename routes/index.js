@@ -1,16 +1,23 @@
 var express = require('express');
 var crypto  = require('crypto'); // node的核心模块，主要用来加密
 var User = require('../models/user.js');
+var Post = require('../models/post.js');
 var router = express.Router();
 
 /* GET home page. */
 module.exports = function(app) {
 	app.get('/', function(req, res) {
- 		 res.render('index', { title: '主页',
+		Post.get(null, function(err, posts) {
+			if (err) {
+				posts = [];
+			}
+			res.render('index', { title: '主页',
+			posts: posts,
  		 	user: req.session.user,
  		 	success: req.flash('success').toString(),
  		 	error: req.flash('error').toString()
  		 });
+		});
 	});
 	app.get('/reg', checkNotLogin);
 	app.get('/reg', function(req, res) {
@@ -106,7 +113,16 @@ module.exports = function(app) {
 	});
 	app.post('/post',checkLogin);
 	app.post('/post', function(req, res) {
- 		 
+ 		var curUserName = req.session.name;
+ 		var post = new Post(curUserName, req.body.title, req.body.post);
+		post.save(function(err) {
+			if (err) {
+				req.flash('error', err);
+				return res.redirect('/');
+			}
+			req.flash('success', '发布成功');
+			res.redirect('/');// 发表成功后重定向主页
+		});	 
 	});
 	app.get('/logout',checkLogin);
 	app.get('/logout', function(req, res) {
