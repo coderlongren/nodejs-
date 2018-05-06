@@ -1,6 +1,6 @@
 var DB = require('./db');
+var markdown = require('markdown').markdown;
 var mongodb = new DB();
-// js的构造函数
 function Post(name, title, post) {
 	this.name = name;
 	this.title = title;
@@ -41,10 +41,13 @@ Post.get = function(name, callback) {
     if (name) {
       query.name = name;
     }
-    mongodb.find(query,'posts',function(err,result){
+    mongodb.find(query,'posts',function(err,docs){
         if (err) {
            return callback(err);//错误，返回 err 信息
          }
-         callback(null, result);//成功！err 为 null，并返回存储后的用户文档
+         docs.forEach(function (doc) {
+  			doc.post = markdown.toHTML(doc.post);
+		 });
+         callback(null, docs);//成功！err 为 null，并返回存储后的用户文档
     });
 };

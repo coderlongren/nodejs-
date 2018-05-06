@@ -7,3 +7,11 @@ Post
 ![](/image/home.png)
 DB
 ![](/image/db.png)
+
+
+
+
+
+<!-- ftp1.linuxidc.com
+
+密码：www.linuxidc.com -->

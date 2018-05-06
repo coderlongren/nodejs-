@@ -5,6 +5,8 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var settings = require('./settings');// 自己写的配置文件         
 var flash = require('connect-flash');
+var multer = require('multer'); // 文件上传模块
+
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -27,6 +29,13 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 // 默认的Node中间件， 指定存放静态文件的目录: public 
 app.use(express.static(path.join(__dirname, 'public')));
+// APP使用multer中间件
+app.use(multer({
+    dest : './public/images',
+    rename : function(filedname, filename) {
+      return filename;
+    }
+}));
 
 // 使用 Session中间件
 app.use(session({
@@ -63,4 +72,4 @@ app.use(function(err, req, res, next) {
   res.render('error');  // 使用 render函数渲染模板
 });
 
-module.exports = app;
+module.exports = app;                 
