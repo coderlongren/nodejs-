@@ -1,4 +1,10 @@
 var createError = require('http-errors');
+
+/*引入 文件读写模块*/
+var fs = require('fs'); 
+var accessLog = fs.createWriteStream('access.log', {flags: 'a'});
+var errorLog = fs.createWriteStream('error.log', {flags: 'a'});
+
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
@@ -24,11 +30,19 @@ app.set('view engine', 'ejs'); //
 app.use(flash());
 
 app.use(logger('dev')); // 加载日志中间件
+app.use(logger({stream:accessLog}))
 app.use(express.json()); // 解析JSon的中间件
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 // 默认的Node中间件， 指定存放静态文件的目录: public 
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(function (err, req, res, next) {
+  var meta = '[' + new Date() + '] ' + req.url + '\n';
+  errorLog.write(meta + err.stack + '\n');
+  next(); // 控制权移交给系统所有
+});
+
 // APP使用multer中间件
 app.use(multer({
     dest : './public/images',
