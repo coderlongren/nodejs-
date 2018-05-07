@@ -29,8 +29,7 @@ Db.prototype.insert = function(data,col,cb){
         db.close();
         cb(null,result);
     });
-  });
-  
+  }); 
 }
 // 自定义的 查找方法
 Db.prototype.find = function(data,col,cb){
