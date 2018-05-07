@@ -7,7 +7,7 @@ var router = express.Router();
 /* GET home page. */
 module.exports = function(app) {
 	app.get('/', function(req, res) {
-		Post.get(null, function(err, posts) {
+		Post.getAll(null, function(err, posts) {
 			if (err) {
 				posts = [];
 			}
@@ -19,6 +19,46 @@ module.exports = function(app) {
  		 });
 		});
 	});
+	// 添加一些指向用户文章的路由
+	app.get('/u/:name/:title', function (req, res) {
+	  // 使用req.params.属性 来获得url里面的参数
+		Post.getOne(req.params.name, req.params.title,function (err, post) {
+	      if (err) {
+	        req.flash('error', err); 
+	        return res.redirect('/');
+	      } 
+	      console.log(post[0].post);
+	      // var post = post[]
+	      res.render('article', {
+	        post: post[0].post,
+	        time: post[0].time.day,
+	        title: post[0].title,
+	        user : req.session.user,
+	        success : req.flash('success').toString(),
+	        error : req.flash('error').toString()
+	      });
+	    });
+	});
+	app.get('/edit/:name/:title', checkLogin);
+	app.get('/edit/:name/:title', function (req, res) {
+	  var currentUser = req.session.user;
+	  Post.edit(currentUser.name, req.params.title, function (err, post) {
+	    if (err) {
+	      req.flash('error', err); 
+	      return res.redirect('back');
+	    }
+	    var tempPost = post[0];
+	    res.render('edit', {
+	      title: '编辑',
+	      post: tempPost,
+	      user: req.session.user,
+	      success: req.flash('success').toString(),
+	      error: req.flash('error').toString()
+	    });
+	  });
+	});
+
+
 	app.get('/reg', checkNotLogin);
 	app.get('/reg', function(req, res) {
  		 res.render('reg', { title: '注册',
@@ -113,7 +153,7 @@ module.exports = function(app) {
 	});
 	app.post('/post',checkLogin);
 	app.post('/post', function(req, res) {
- 		var curUserName = req.session.name;
+ 		var curUserName = req.session.user.name;
  		var post = new Post(curUserName, req.body.title, req.body.post);
 		post.save(function(err) {
 			if (err) {
@@ -143,7 +183,31 @@ module.exports = function(app) {
 	app.post('/upload', function(req, res) {
 		req.flash('success', '文件上传成功');
 		res.redirect('/upload');
-	})
+	});
+	app.get('/u/:name', function (req, res) {
+  //检查用户是否存在
+	  User.get(req.params.name, function (err, user) {
+	    if (!user) {
+	      req.flash('error', '用户不存在!'); 
+	      return res.redirect('/');//用户不存在则跳转到主页
+	    }
+	    //查询并返回该用户的所有文章
+	    Post.getAll(user.name, function (err, posts) {
+	      if (err) {
+	        req.flash('error', err); 
+	        return res.redirect('/');
+	      } 
+	      res.render('user', {
+	        title: user.name,
+	        posts: posts,
+	        user : req.session.user,
+	        success : req.flash('success').toString(),
+	        error : req.flash('error').toString()
+	      });
+	    });
+	  }); 
+	});
+
 
 	app.use(function(req, res) {
 		res.render('404');

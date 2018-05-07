@@ -1,0 +1,12 @@
+<%- include header %>
+<p>
+  <span><a class="edit" href="/edit/<%= user.name %>/<%= title %>">编辑</a></span>
+  <span><a class="edit" href="/remove/<%= user.name %>/<%= title %>">删除</a></span>
+</p>
+<p class="info">
+  作者：<a href="/u/<%= user.name %>"><%= user.name %></a> | 
+  日期：<%= time %> |
+  标题 : <%= title %>
+</p>
+<p><%- post %></p>
+<%- include footer %>

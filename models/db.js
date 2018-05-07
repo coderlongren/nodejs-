@@ -59,3 +59,35 @@ Db.prototype.find = function(data,col,cb){
   });
  });
 }
+
+
+Db.prototype.findOne = function(data,col,cb){
+
+var selectData = function(db, callback) {  
+  //连接到表  
+  var collection = db.collection(col);
+  //查询数据
+  var whereStr = data;
+  console.log("到达了 数据库层面");
+  console.log(whereStr.name + ",,,,,,,,,,,,,,," + whereStr.title);
+  collection.find(whereStr).sort({
+    time: -1
+  }).toArray(function(err, result) {
+    if(err)
+    {
+      return cb(err);
+    } 
+    callback(null,result[0]);
+  });
+}
+ 
+ MongoClient.connect(this.url, function(err, db) {
+  console.log("连接成功！");
+  selectData(db, function(newerr,result) {
+    db.close();
+    cb(null,result);
+  });
+ });
+
+
+}
