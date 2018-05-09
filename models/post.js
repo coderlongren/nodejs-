@@ -28,6 +28,7 @@ Post.prototype.save = function(callback) {
       time: time,
       title: this.title,
       post: this.post,
+      comments:[]
   };
   mongodb.insert(post,'posts',function(err,result){
     if(err){

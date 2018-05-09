@@ -129,3 +129,18 @@ Db.prototype.delete = function(data,col,cb){
     });
     });
 };
+
+//更新一篇文章及其相关信息
+Db.prototype.delete = function(data,col,cb){
+  MongoClient.connect(this.url, function(err, db) {
+    console.log("连接成功！");
+    var whereStr  = {"name":data.name,"time.day":data.time, "title":data.title};
+    var collection = db.collection(col);
+    collection.deleteOne(whereStr,  function(err, res) {
+        if (err) throw err;
+        console.log("文档删除成功");
+        cb(null);
+        db.close();
+    });
+    });
+};
