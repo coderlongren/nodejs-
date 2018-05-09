@@ -6,6 +6,7 @@ function Post(name, title, post) {
 	this.name = name;
 	this.title = title;
 	this.post = post;
+
 }
 // 导出此模块
 module.exports = Post;
@@ -26,7 +27,7 @@ Post.prototype.save = function(callback) {
       name: this.name,
       time: time,
       title: this.title,
-      post: this.post
+      post: this.post,
   };
   mongodb.insert(post,'posts',function(err,result){
     if(err){
@@ -53,27 +54,27 @@ Post.getAll = function(name, callback) {
     });
 };
 //获取一篇文章
-Post.getOne = function(name,title,callback) {
+Post.getOne = function(name,day,title,callback) {
     var query = {};
     query.name = name;
     query.title = title;
-    mongodb.find(query,'posts',function(err,docs){
+    query.time = day;
+    console.log(query.toString());
+    mongodb.findOne(query,'posts',function(err,docs){
         if (err) {
            return callback(err);//错误，返回 err 信息
          }
-         docs.forEach(function (doc) {
-  			doc.post = markdown.toHTML(doc.post);
-		 });
          callback(null, docs);//成功！err 为 null，并返回存储后的用户文档
     });
 };
 
 //返回原始发表的内容（markdown 格式）
-Post.edit = function(name,  title, callback) {
+Post.edit = function(name, day, title, callback) {
   	var query = {};
     query.name = name;
     query.title = title;
-    mongodb.find(query,'posts',function(err,docs){
+    query.time = day;
+    mongodb.findEdit(query,'posts',function(err,docs){
         if (err) {
            return callback(err);//错误，返回 err 信息
          }
@@ -82,32 +83,30 @@ Post.edit = function(name,  title, callback) {
 };
 
 //更新一篇文章及其相关信息
-Post.update = function(name, title, post, callback) {
-  //打开数据库
-  mongodb.open(function (err, db) {
-    if (err) {
-      return callback(err);
-    }
-    //读取 posts 集合
-    db.collection('posts', function (err, collection) {
-      if (err) {
-        mongodb.close();
-        return callback(err);
-      }
-      //更新文章内容
-      collection.update({
-        "name": name,
-        "time.day": day,
-        "title": title
-      }, {
-        $set: {post: post}
-      }, function (err) {
-        mongodb.close();
-        if (err) {
-          return callback(err);
-        }
-        callback(null);
-      });
-    });
-  });
+Post.update = function(name,day, title, post, callback) {
+    var query = {};
+    query.name = name;
+    query.title = title;
+    query.post = post;
+    query.time = day;
+ 	mongodb.update(query, 'posts', function(err) {
+ 		if (err) {
+ 			return callback(err);
+ 		}
+ 		callback(null);
+ 	});
+};
+
+//删除一篇文章
+Post.remove = function(name,day, title, callback) {
+	var query = {};
+    query.name = name;
+    query.title = title;
+    query.time = day;
+ 	mongodb.delete(query, 'posts', function(err) {
+ 		if (err) {
+ 			return callback(err);
+ 		}
+ 		callback(null);
+ 	});
 };

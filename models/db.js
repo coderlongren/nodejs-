@@ -1,5 +1,6 @@
 var MongoClient = require('mongodb').MongoClient;
 var settings = require('../settings');
+var markdown = require('markdown').markdown;
 function Db(){
  this.url = settings.url; 
 }
@@ -18,7 +19,7 @@ Db.prototype.insert = function(data,col,cb){
         {
             console.log('Error:'+ err);
             return cb(err);
-        }     
+        }
         callback(null,result);
     });
   }
@@ -61,32 +62,70 @@ Db.prototype.find = function(data,col,cb){
 
 
 Db.prototype.findOne = function(data,col,cb){
+  MongoClient.connect(this.url, function(err, db) {
+    console.log("连接成功！");
+    var collection = db.collection(col);
+    collection.findOne({
+      "name":data.name,
+      "time.day":data.time,
+      "title":data.title
+    }, function(err, doc) {
+      db.close();
+        if (err) {
+          return callback(err);
+        }
+        //解析 markdown 为 html
+        doc.post = markdown.toHTML(doc.post);
+        cb(null, doc);//返回查询的一篇文章
+      });
+    });
+};
+ Db.prototype.findEdit = function(data,col,cb){
+  MongoClient.connect(this.url, function(err, db) {
+    console.log("连接成功！");
+    var collection = db.collection(col);
+    collection.findOne({
+      "name":data.name,
+      "time.day":data.time,
+      "title":data.title
+    }, function(err, doc) {
+      db.close();
+        if (err) {
+          return callback(err);
+        }
+        //解析 markdown 为 html
+        // doc.post = markdown.toHTML(doc.post);
+        cb(null, doc);//返回查询的一篇文章
+      });
+    });
+};
 
-var selectData = function(db, callback) {  
-  //连接到表  
-  var collection = db.collection(col);
-  //查询数据
-  var whereStr = data;
-  console.log("到达了 数据库层面");
-  console.log(whereStr.name + ",,,,,,,,,,,,,,," + whereStr.title);
-  collection.find(whereStr).sort({
-    time: -1
-  }).toArray(function(err, result) {
-    if(err)
-    {
-      return cb(err);
-    } 
-    callback(null,result[0]);
-  });
-}
- 
- MongoClient.connect(this.url, function(err, db) {
-  console.log("连接成功！");
-  selectData(db, function(newerr,result) {
-    db.close();
-    cb(null,result);
-  });
- });
 
-
-}
+Db.prototype.update = function(data,col,cb){
+  MongoClient.connect(this.url, function(err, db) {
+    console.log("连接成功！");
+    var whereStr  = {"name":data.name,"time.day":data.time,"title":data.title};
+    var updateStr = {$set: {"post":data.post}};
+    var collection = db.collection(col);
+    collection.updateOne(whereStr, updateStr, function(err, res) {
+        if (err) throw err;
+        console.log("文档更新成功");
+        cb(null);
+        db.close();
+    });
+    });
+};
+// MongoDB 删除数据
+Db.prototype.delete = function(data,col,cb){
+  MongoClient.connect(this.url, function(err, db) {
+    console.log("连接成功！");
+    var whereStr  = {"name":data.name,"time.day":data.time, "title":data.title};
+    var collection = db.collection(col);
+    collection.deleteOne(whereStr,  function(err, res) {
+        if (err) throw err;
+        console.log("文档删除成功");
+        cb(null);
+        db.close();
+    });
+    });
+};

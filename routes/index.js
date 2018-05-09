@@ -2,6 +2,7 @@ var express = require('express');
 var crypto  = require('crypto'); // node的核心模块，主要用来加密
 var User = require('../models/user.js');
 var Post = require('../models/post.js');
+var Comment = require('../models/comment.js');
 var router = express.Router();
 
 /* GET home page. */
@@ -20,43 +21,87 @@ module.exports = function(app) {
 		});
 	});
 	// 添加一些指向用户文章的路由
-	app.get('/u/:name/:title', function (req, res) {
-	  // 使用req.params.属性 来获得url里面的参数
-		Post.getOne(req.params.name, req.params.title,function (err, post) {
-	      if (err) {
-	        req.flash('error', err); 
-	        return res.redirect('/');
-	      } 
-	      console.log(post[0].post);
-	      // var post = post[]
-	      res.render('article', {
-	        post: post[0].post,
-	        time: post[0].time.day,
-	        title: post[0].title,
-	        user : req.session.user,
-	        success : req.flash('success').toString(),
-	        error : req.flash('error').toString()
-	      });
-	    });
-	});
-	app.get('/edit/:name/:title', checkLogin);
-	app.get('/edit/:name/:title', function (req, res) {
-	  var currentUser = req.session.user;
-	  Post.edit(currentUser.name, req.params.title, function (err, post) {
+	app.get('/u/:name/:day/:title', function (req, res) {
+		console.log("进来了");
+	  Post.getOne(req.params.name, req.params.day, req.params.title, function (err, post) {
 	    if (err) {
 	      req.flash('error', err); 
-	      return res.redirect('back');
+	      return res.redirect('/');
 	    }
-	    var tempPost = post[0];
-	    res.render('edit', {
-	      title: '编辑',
-	      post: tempPost,
+	    res.render('article', {
+	      title: req.params.title,
+	      post: post,
 	      user: req.session.user,
 	      success: req.flash('success').toString(),
 	      error: req.flash('error').toString()
 	    });
 	  });
 	});
+	// 可删除的  POst模块
+	app.post('/u/:name/:title', function (req, res) {
+	  var comment = {
+	      name: req.body.name,
+	      email: req.body.email,
+	      website: req.body.website,
+	      content: req.body.content
+	  };
+	  var newComment = new Comment(req.params.name, req.params.day, req.params.title, comment);
+	  newComment.save(function (err) {
+	    if (err) {
+	      req.flash('error', err); 
+	      return res.redirect('back');
+	    }
+	    req.flash('success', '留言成功!');
+	    res.redirect('back');
+	  });
+	});
+
+	app.get('/edit/:name/:day/:title', checkLogin);
+	app.get('/edit/:name/:day/:title', function (req, res) {
+	  var currentUser = req.session.user;
+	  Post.edit(currentUser.name, req.params.day, req.params.title, function (err, post) {
+	    if (err) {
+	      req.flash('error', err); 
+	      return res.redirect('back');
+	    }
+	    res.render('edit', {
+	      title: '编辑',
+	      post: post,
+	      user: req.session.user,
+	      success: req.flash('success').toString(),
+	      error: req.flash('error').toString()
+	    });
+	  });
+	});
+
+	app.post('/edit/:name/:day/:title', checkLogin);
+	app.post('/edit/:name/:day/:title', function (req, res) {
+	  var currentUser = req.session.user;
+	  Post.update(currentUser.name, req.params.day, req.params.title, req.body.post, function (err) {
+	    var url = encodeURI('/u/' + req.params.name + '/' + req.params.day + '/' + req.params.title);
+	    if (err) {
+	      req.flash('error', err); 
+	      return res.redirect(url);//出错！返回文章页
+	    }
+	    req.flash('success', '修改成功!');
+	    res.redirect(url);//成功！返回文章页
+	  });
+	});
+
+	app.get('/remove/:name/:day/:title', checkLogin);
+	app.get('/remove/:name/:day/:title', function (req, res) {
+	  var currentUser = req.session.user;
+	  Post.remove(currentUser.name,req.params.day, req.params.title, function (err) {
+	    if (err) {
+	      req.flash('error', err); 
+	      return res.redirect('back');
+	    }
+	    req.flash('success', '删除成功!');
+	    res.redirect('/');
+	  });
+	});
+
+
 
 
 	app.get('/reg', checkNotLogin);
@@ -67,6 +112,7 @@ module.exports = function(app) {
  		 	error: req.flash('error').toString()
  		 });
 	});
+
 
 	app.post('/reg', checkNotLogin);
 	app.post('/reg', function(req, res) {
@@ -151,6 +197,7 @@ module.exports = function(app) {
  		 	error: req.flash('error').toString()
  		});
 	});
+
 	app.post('/post',checkLogin);
 	app.post('/post', function(req, res) {
  		var curUserName = req.session.user.name;
