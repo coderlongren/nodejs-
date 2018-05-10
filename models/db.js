@@ -144,3 +144,20 @@ Db.prototype.delete = function(data,col,cb){
     });
     });
 };
+
+Db.prototype.updateComment = function(data, col, cb) {
+  MongoClient.connect(this.url, function(err, db) {
+    console.log("连接成功");
+    var whereStr = {"name": data.name, "time.day": data.time, "title":data.title};
+    var updateStr = {$push: {"comments":data.comment}};
+    var collection = db.collection(col);
+    collection.update(whereStr, updateStr, function(err, res) {
+      if (err) {
+        throw err; // 出现异常
+      }
+      console.log("评论提交成功");
+      cb(null);
+      db.close();
+    })
+  });
+};

@@ -31,20 +31,27 @@ module.exports = function(app) {
 	    res.render('article', {
 	      title: req.params.title,
 	      post: post,
+	      comments: post.comments,
 	      user: req.session.user,
 	      success: req.flash('success').toString(),
 	      error: req.flash('error').toString()
 	    });
 	  });
 	});
-	// 可删除的  POst模块
-	app.post('/u/:name/:title', function (req, res) {
+	// 
+	app.post('/u/:name/:day/:title', function (req, res) {
+	  var date = new Date(),
+	      time = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + " " + 
+	             date.getHours() + ":" + (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes());
 	  var comment = {
 	      name: req.body.name,
 	      email: req.body.email,
 	      website: req.body.website,
+	      time: time,
 	      content: req.body.content
 	  };
+	  console.log(req.body.name + req.body.email + time + req.body.content);
+	  console.log(comment.name + comment.content + "....................");
 	  var newComment = new Comment(req.params.name, req.params.day, req.params.title, comment);
 	  newComment.save(function (err) {
 	    if (err) {
